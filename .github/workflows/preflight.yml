@@ -1,0 +1,13 @@
+name: preflight-aarch64
+on: [push, workflow_dispatch]
+jobs:
+  linux-aarch64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - run: sudo apt-get update && sudo apt-get install -y nasm cmake make
+      - run: cmake -S libretro -B build -DCMAKE_BUILD_TYPE=Release -DCORE_NAME=hypseushw && cmake --build build -j$(nproc)
+      - run: find build -name '*_libretro.so' -exec file {} \; -exec sh -c 'nm -D {} | grep -c " T retro_"' \;
+      - uses: actions/upload-artifact@v4
+        with: { name: hypseushw-linux-aarch64, path: build/**/*_libretro.so }
